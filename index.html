@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#1a7f3b" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    :root{--g1:#0d5f2f;--g2:#1a7f3b;--g3:#23a455;--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--gold:#f5d38e}
+    :root{--g1:#0d5f2f;--g2:#1a7f3b;--g3:#23a455;--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#b7e4c7;--gold:#f5d38e}
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:
       radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
@@ -17,7 +17,7 @@
     @media(min-width:960px){.container{grid-template-columns:520px 1fr;align-items:start}}
     .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:22px;backdrop-filter:blur(6px);box-shadow:0 20px 40px rgba(0,0,0,.35)}
     .brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px}
-    .brand img{width:140px;height:auto}
+    .brand img{width:140px;height:auto;object-fit:contain}
     .title{font-size:26px;margin:0;font-weight:800;color:#e8fff3;text-align:center}
     label{display:block;margin:10px 0 6px;color:#d1fae5;font-weight:700}
     input{width:100%;padding:12px 14px;border-radius:10px;background:#0c1f16;color:var(--text);border:1px solid rgba(255,255,255,.12);font-size:15px}
@@ -28,12 +28,15 @@
     .chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
     .chip{border:1px solid rgba(255,255,255,.16);color:#cde9d6;padding:6px 10px;border-radius:999px;font-size:12px}
     canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+    .toast{margin-top:10px;font-size:13px;color:#ffd7a6;display:none}
+    .show{display:block}
   </style>
 </head>
 <body>
   <main class="container">
     <section class="card">
       <div class="brand">
+        <!-- غيّر الرابط لو اللوجو بمكان آخر -->
         <img src="https://raw.githubusercontent.com/melmenawy05-maker/Stride-wheel/main/logo.png" alt="STRIDE Logo" />
         <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
       </div>
@@ -54,114 +57,11 @@
         <button id="spinBtn" disabled>لف العجلة 🎯</button>
       </div>
 
+      <div id="toast" class="toast"></div>
+
       <div class="chips" id="chips"></div>
     </section>
   </main>
 
   <script>
-    // ✅ رابط الويب آب الجديد
-    const GAS = "https://script.google.com/macros/s/AKfycbxb8Tgsu8kD0Mq8DWAU8laqn8w_NFd_QxeAZoAaEHWAPw8rTRReRbMDC7toNv6Rd1tfcg/exec";
-
-    const PRIZES = [
-      { label:'خصم 5٪',  color:'#1a7f3b' },
-      { label:'خصم 10٪', color:'#23a455' },
-      { label:'خصم 15٪', color:'#0ea5e9' },
-      { label:'خصم 20٪', color:'#2dd4bf' },
-      { label:'خصم 25٪', color:'#22c55e' },
-      { label:'خصم 30٪', color:'#86efac' }
-    ];
-
-    const nameEl=document.getElementById('name');
-    const phoneEl=document.getElementById('phone');
-    const regBtn=document.getElementById('registerBtn');
-    const spinBtn=document.getElementById('spinBtn');
-    const chipsBox=document.getElementById('chips');
-    const canvas=document.getElementById('wheel');
-    const ctx=canvas.getContext('2d');
-    const size=canvas.width, R=size/2;
-    let currentAngle=-Math.PI/2, spinning=false;
-
-    function paintChips(){
-      chipsBox.innerHTML='';
-      PRIZES.forEach(p=>{
-        const s=document.createElement('span'); 
-        s.className='chip'; 
-        s.textContent=p.label; 
-        chipsBox.appendChild(s); 
-      });
-    }
-
-    function drawWheel(){
-      ctx.clearRect(0,0,size,size); ctx.save(); ctx.translate(R,R);
-      const n=PRIZES.length, arc=(Math.PI*2)/n;
-      for(let i=0;i<n;i++){
-        const start=currentAngle+i*arc, end=start+arc;
-        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-12,start,end); ctx.closePath();
-        ctx.fillStyle=PRIZES[i].color; ctx.fill();
-        ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=2; ctx.stroke();
-        const mid=start+arc/2;
-        ctx.save(); ctx.rotate(mid);
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.direction='rtl';
-        ctx.fillStyle='#04140b'; ctx.font='700 18px system-ui,Arial';
-        ctx.fillText(PRIZES[i].label, R*0.68, 0);
-        ctx.restore();
-      }
-      ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
-      ctx.restore();
-      ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
-      ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
-    }
-
-    function spinTo(index, onDone){
-      if(spinning) return; spinning=true;
-      const n=PRIZES.length, arc=(Math.PI*2)/n;
-      const targetMid = -Math.PI/2 - index*arc - arc/2;
-      const extra=5 + Math.floor(Math.random()*2);
-      const targetAngle = targetMid - extra*2*Math.PI;
-      const dur = 4200 + Math.random()*800;
-      const start=currentAngle, t0=performance.now();
-      const ease=t=>1 - Math.pow(1-t,3);
-      (function frame(now){
-        const t=Math.min(1,(now-t0)/dur);
-        currentAngle = start + (targetAngle-start)*ease(t);
-        drawWheel();
-        if(t<1) requestAnimationFrame(frame); else {spinning=false; onDone&&onDone();}
-      })(performance.now());
-    }
-
-    async function apiPost(route, payload){
-      const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
-      if(!r.ok) return { ok:false };
-      try{ return await r.json(); }catch{ return { ok:false }; }
-    }
-
-    regBtn.addEventListener('click', async ()=>{
-      const name=nameEl.value.trim(), phone=phoneEl.value.trim();
-      if(!name || phone.length<9) return;
-      regBtn.disabled=true;
-      const r = await apiPost('register',{name,phone});
-      spinBtn.disabled = !r.ok ? true : false;
-      regBtn.disabled=false;
-    });
-
-    spinBtn.addEventListener('click', async ()=>{
-      const name=nameEl.value.trim(), phone=phoneEl.value.trim();
-      if(!name || phone.length<9) return;
-      spinBtn.disabled=true;
-      const data = await apiPost('spin',{name,phone});
-      if(!data.ok){ spinBtn.disabled=false; return; }
-      let idx = typeof data.index==='number' ? data.index : PRIZES.findIndex(p=>p.label===data.prize);
-      if(idx<0) idx = Math.floor(Math.random()*PRIZES.length);
-      spinTo(idx, ()=>{
-        for (let i=0;i<5;i++){
-          setTimeout(()=>confetti({particleCount:160, spread:70, origin:{y:0.6}}), i*350);
-        }
-        spinBtn.disabled=false;
-      });
-    });
-
-    paintChips(); drawWheel();
-  </script>
-</body>
-</html>
+    //
