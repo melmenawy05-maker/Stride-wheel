@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
   <meta name="theme-color" content="#1a7f3b" />
-  <!-- مكتبة الكونفيتي -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    :root{--g1:#0d5f2f;--g2:#1a7f3b;--g3:#23a455;--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#b7e4c7;--gold:#f5d38e}
+    :root{--g1:#0d5f2f;--g2:#1a7f3b;--g3:#23a455;--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--gold:#f5d38e}
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:
       radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
@@ -33,17 +32,14 @@
 </head>
 <body>
   <main class="container">
-    <!-- العجلة -->
     <section class="card">
       <div class="brand">
-        <!-- اللوجو (غيّر الرابط حسب مكان رفعه) -->
         <img src="https://raw.githubusercontent.com/melmenawy05-maker/Stride-wheel/main/logo.png" alt="STRIDE Logo" />
         <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
       </div>
-      <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
+      <canvas id="wheel" width="520" height="520"></canvas>
     </section>
 
-    <!-- البيانات -->
     <section class="card">
       <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
 
@@ -66,7 +62,6 @@
     // ✅ رابط الويب آب الجديد
     const GAS = "https://script.google.com/macros/s/AKfycbxb8Tgsu8kD0Mq8DWAU8laqn8w_NFd_QxeAZoAaEHWAPw8rTRReRbMDC7toNv6Rd1tfcg/exec";
 
-    // الجوائز
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -76,7 +71,6 @@
       { label:'خصم 30٪', color:'#86efac' }
     ];
 
-    // عناصر
     const nameEl=document.getElementById('name');
     const phoneEl=document.getElementById('phone');
     const regBtn=document.getElementById('registerBtn');
@@ -86,12 +80,6 @@
     const ctx=canvas.getContext('2d');
     const size=canvas.width, R=size/2;
     let currentAngle=-Math.PI/2, spinning=false;
-
-    // تحقق سريع وصامت
-    function phoneValid(v){
-      const d = (v||'').replace(/\D/g,'');
-      return /^(050|053|054|056|011|012|013)\d{7}$/.test(d);
-    }
 
     function paintChips(){
       chipsBox.innerHTML='';
@@ -103,7 +91,6 @@
       });
     }
 
-    // رسم العجلة
     function drawWheel(){
       ctx.clearRect(0,0,size,size); ctx.save(); ctx.translate(R,R);
       const n=PRIZES.length, arc=(Math.PI*2)/n;
@@ -112,7 +99,6 @@
         ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-12,start,end); ctx.closePath();
         ctx.fillStyle=PRIZES[i].color; ctx.fill();
         ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=2; ctx.stroke();
-
         const mid=start+arc/2;
         ctx.save(); ctx.rotate(mid);
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.direction='rtl';
@@ -152,7 +138,7 @@
 
     regBtn.addEventListener('click', async ()=>{
       const name=nameEl.value.trim(), phone=phoneEl.value.trim();
-      if(!name || !phoneValid(phone)) return;
+      if(!name || phone.length<9) return;
       regBtn.disabled=true;
       const r = await apiPost('register',{name,phone});
       spinBtn.disabled = !r.ok ? true : false;
@@ -161,14 +147,12 @@
 
     spinBtn.addEventListener('click', async ()=>{
       const name=nameEl.value.trim(), phone=phoneEl.value.trim();
-      if(!name || !phoneValid(phone)) return;
+      if(!name || phone.length<9) return;
       spinBtn.disabled=true;
       const data = await apiPost('spin',{name,phone});
       if(!data.ok){ spinBtn.disabled=false; return; }
-
       let idx = typeof data.index==='number' ? data.index : PRIZES.findIndex(p=>p.label===data.prize);
       if(idx<0) idx = Math.floor(Math.random()*PRIZES.length);
-
       spinTo(idx, ()=>{
         for (let i=0;i<5;i++){
           setTimeout(()=>confetti({particleCount:160, spread:70, origin:{y:0.6}}), i*350);
