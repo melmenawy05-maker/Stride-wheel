@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
   <meta name="theme-color" content="#1a7f3b" />
-  <!-- كونفيتي للاحتفال -->
+  <!-- مكتبة الكونفيتي -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     :root{--g1:#0d5f2f;--g2:#1a7f3b;--g3:#23a455;--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#b7e4c7;--gold:#f5d38e}
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:
+    body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:
       radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
       radial-gradient(900px 700px at 0% 110%,rgba(13,95,47,.30),transparent 60%),
       linear-gradient(180deg,#0a1a11,#0b1a12 40%,#08160f);}
@@ -26,13 +26,9 @@
     .row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
     button{width:100%;padding:12px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;font-size:16px;background:linear-gradient(90deg,var(--g2),var(--g3));color:#04140b;transition:transform .06s ease,filter .2s}
     button:hover{filter:brightness(1.05)} button:active{transform:scale(.98)} button[disabled]{opacity:.6;cursor:not-allowed}
-    .msg{margin-top:10px;padding:10px;border-radius:12px;text-align:center;display:none}
-    .ok{background:rgba(35,164,85,.10);border:1px solid rgba(35,164,85,.35);color:#86efac}
-    .err{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.35);color:#fecaca}
     .chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
     .chip{border:1px solid rgba(255,255,255,.16);color:#cde9d6;padding:6px 10px;border-radius:999px;font-size:12px}
     canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
-    .note{color:var(--muted);font-size:13px;margin-top:8px}
   </style>
 </head>
 <body>
@@ -40,7 +36,7 @@
     <!-- العجلة -->
     <section class="card">
       <div class="brand">
-        <!-- ارفع logo.png داخل الريبو بنفس الاسم أو غيّر الرابط هنا -->
+        <!-- اللوجو (غيّر الرابط حسب مكان رفعه) -->
         <img src="https://raw.githubusercontent.com/melmenawy05-maker/Stride-wheel/main/logo.png" alt="STRIDE Logo" />
         <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
       </div>
@@ -50,7 +46,6 @@
     <!-- البيانات -->
     <section class="card">
       <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
-      <p class="note">محاولتان فقط خلال 24 ساعة لكل رقم. رقم سعودي صحيح (10 أرقام ويبدأ بـ 05).</p>
 
       <label for="name">الاسم</label>
       <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="name"/>
@@ -63,19 +58,15 @@
         <button id="spinBtn" disabled>لف العجلة 🎯</button>
       </div>
 
-      <div id="okMsg" class="msg ok"></div>
-      <div id="errMsg" class="msg err"></div>
-
       <div class="chips" id="chips"></div>
-      <p class="note">الخيارات: خصم 5٪ · 10٪ · 15٪ · 20٪ · 25٪ · 30٪</p>
     </section>
   </main>
 
   <script>
-    // ✅ رابط الويب آب
-    const GAS = "https://script.google.com/macros/s/AKfycbyKJqrZOFN31VXJY3BDrawtfmshnTv-Q6R56HbTY0g6erNeL2xqIieyWTuRS0a6fOu5nw/exec";
+    // ✅ رابط الويب آب الجديد
+    const GAS = "https://script.google.com/macros/s/AKfycbxb8Tgsu8kD0Mq8DWAU8laqn8w_NFd_QxeAZoAaEHWAPw8rTRReRbMDC7toNv6Rd1tfcg/exec";
 
-    // القطاعات
+    // الجوائز
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -90,20 +81,27 @@
     const phoneEl=document.getElementById('phone');
     const regBtn=document.getElementById('registerBtn');
     const spinBtn=document.getElementById('spinBtn');
-    const okMsg=document.getElementById('okMsg');
-    const errMsg=document.getElementById('errMsg');
     const chipsBox=document.getElementById('chips');
-
     const canvas=document.getElementById('wheel');
     const ctx=canvas.getContext('2d');
     const size=canvas.width, R=size/2;
     let currentAngle=-Math.PI/2, spinning=false;
 
-    // تحقق محلي قبل الإرسال
-    function phoneValid(v){ return /^05\d{8}$/.test((v||'').replace(/\D/g,'')); }
-    function show(el,txt){ el.textContent=txt; el.style.display='block'; }
-    function hideMsgs(){ okMsg.style.display='none'; errMsg.style.display='none'; }
-    function paintChips(){ chipsBox.innerHTML=''; PRIZES.forEach(p=>{ const s=document.createElement('span'); s.className='chip'; s.textContent=p.label; chipsBox.appendChild(s); }); }
+    // تحقق سريع وصامت
+    function phoneValid(v){
+      const d = (v||'').replace(/\D/g,'');
+      return /^(050|053|054|056|011|012|013)\d{7}$/.test(d);
+    }
+
+    function paintChips(){
+      chipsBox.innerHTML='';
+      PRIZES.forEach(p=>{
+        const s=document.createElement('span'); 
+        s.className='chip'; 
+        s.textContent=p.label; 
+        chipsBox.appendChild(s); 
+      });
+    }
 
     // رسم العجلة
     function drawWheel(){
@@ -122,17 +120,15 @@
         ctx.fillText(PRIZES[i].label, R*0.68, 0);
         ctx.restore();
       }
-      // مركز
       ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
       ctx.restore();
-      // السهم
       ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
       ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
 
     function spinTo(index, onDone){
-      if(spinning) return; spinning = true;
+      if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(Math.PI*2)/n;
       const targetMid = -Math.PI/2 - index*arc - arc/2;
       const extra=5 + Math.floor(Math.random()*2);
@@ -148,48 +144,37 @@
       })(performance.now());
     }
 
-    // POST بسيط بدون ترويسات لتفادي preflight/CORS
     async function apiPost(route, payload){
       const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
-      if(!r.ok) throw new Error('تعذّر الاتصال بالخادم'); return r.json();
+      if(!r.ok) return { ok:false };
+      try{ return await r.json(); }catch{ return { ok:false }; }
     }
 
     regBtn.addEventListener('click', async ()=>{
-      hideMsgs();
       const name=nameEl.value.trim(), phone=phoneEl.value.trim();
-      if(!name) return show(errMsg,'من فضلك اكتب الاسم');
-      if(!phoneValid(phone)) return show(errMsg,'رقم سعودي غير صحيح (10 أرقام ويبدأ بـ 05)');
+      if(!name || !phoneValid(phone)) return;
       regBtn.disabled=true;
-      try{ 
-        const r = await apiPost('register',{name,phone});
-        if(!r.ok) throw new Error(r.message || 'فشل التسجيل');
-        show(okMsg,'تم تسجيل بياناتك ✅'); spinBtn.disabled=false;
-      }catch(e){ show(errMsg, e.message || 'فشل تسجيل البيانات'); }
-      finally{ regBtn.disabled=false; }
+      const r = await apiPost('register',{name,phone});
+      spinBtn.disabled = !r.ok ? true : false;
+      regBtn.disabled=false;
     });
 
     spinBtn.addEventListener('click', async ()=>{
-      hideMsgs();
       const name=nameEl.value.trim(), phone=phoneEl.value.trim();
-      if(!name || !phoneValid(phone)) return show(errMsg,'سجّل الاسم والرقم أولاً');
+      if(!name || !phoneValid(phone)) return;
       spinBtn.disabled=true;
-      try{
-        const data = await apiPost('spin',{name,phone});
-        if(!data.ok){ show(errMsg, data.message || 'غير مسموح بمحاولة أخرى الآن'); spinBtn.disabled=false; return; }
-        let idx = typeof data.index==='number' ? data.index : PRIZES.findIndex(p=>p.label===data.prize);
-        if(idx<0) idx = Math.floor(Math.random()*PRIZES.length);
-        // الدوران + الاحتفال
-        spinTo(idx, ()=>{
-          const text = `🎉 مبروك يا ${name}! جائزتك: ${data.prize || PRIZES[idx].label}`;
-          show(okMsg, text);
-          for (let i=0;i<5;i++){
-            setTimeout(()=>confetti({particleCount:160, spread:70, origin:{y:0.6}}), i*350);
-          }
-        });
-      }catch(e){
-        show(errMsg, e.message || 'حصل خطأ أثناء الدوران'); 
+      const data = await apiPost('spin',{name,phone});
+      if(!data.ok){ spinBtn.disabled=false; return; }
+
+      let idx = typeof data.index==='number' ? data.index : PRIZES.findIndex(p=>p.label===data.prize);
+      if(idx<0) idx = Math.floor(Math.random()*PRIZES.length);
+
+      spinTo(idx, ()=>{
+        for (let i=0;i<5;i++){
+          setTimeout(()=>confetti({particleCount:160, spread:70, origin:{y:0.6}}), i*350);
+        }
         spinBtn.disabled=false;
-      }
+      });
     });
 
     paintChips(); drawWheel();
