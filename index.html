@@ -1,1 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>عجلة الحظ 🎉</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      flex-direction: column;
+    }
+    canvas {
+      border: 10px solid #fff;
+      border-radius: 50%;
+      background: #333;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #ff9800;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e68900;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎁 جرب حظك 🎁</h1>
+  <canvas id="wheel" width="400" height="400"></canvas>
+  <button onclick="spin()">لف العجلة</button>
 
+  <script>
+    const wheel = document.getElementById("wheel");
+    const ctx = wheel.getContext("2d");
+    const prizes = ["جائزة 1", "جائزة 2", "جائزة 3", "جائزة 4", "جائزة 5", "جائزة 6"];
+    const colors = ["#e74c3c","#8e44ad","#3498db","#27ae60","#f39c12","#d35400"];
+    let angle = 0;
+
+    function drawWheel() {
+      const slice = 2 * Math.PI / prizes.length;
+      for (let i = 0; i < prizes.length; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = colors[i];
+        ctx.moveTo(200, 200);
+        ctx.arc(200, 200, 200, i * slice, (i + 1) * slice);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(i * slice + slice / 2);
+        ctx.fillStyle = "#fff";
+        ctx.font = "18px Arial";
+        ctx.fillText(prizes[i], 70, 10);
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    function spin() {
+      let spinAngle = Math.random() * 1000 + 1000; 
+      let spinTime = 0;
+      let spinTimeTotal = 3000; 
+
+      function rotateWheel() {
+        spinTime += 30;
+        if (spinTime >= spinTimeTotal) {
+          stopRotateWheel(spinAngle);
+          return;
+        }
+        angle += (spinAngle - spinTime) / 50;
+        ctx.clearRect(0, 0, 400, 400);
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(angle * Math.PI / 180);
+        ctx.translate(-200, -200);
+        drawWheel();
+        ctx.restore();
+        requestAnimationFrame(rotateWheel);
+      }
+      rotateWheel();
+    }
+
+    function stopRotateWheel(spinAngle) {
+      angle = angle % 360;
+      const slice = 360 / prizes.length;
+      const index = Math.floor((360 - angle % 360) / slice) % prizes.length;
+      alert("مبروك! كسبت: " + prizes[index]);
+    }
+  </script>
+</body>
+</html>
