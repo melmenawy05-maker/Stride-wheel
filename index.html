@@ -79,10 +79,10 @@
   </div>
 
   <script>
-    // 🔗 رابط Google Apps Script الجديد
-    const GAS = "https://script.google.com/macros/s/AKfycbyFaeNUR1FxFpXmPwn4Kzqk_pHVJSNvq0GervtzWIasxJN4X8Z_S81ZV4F-PoKrRFo3yw/exec";
+    // 🔗 رابط Google Apps Script الحالي
+    const GAS = "https://script.google.com/macros/s/AKfycbxVf7EXYfOKXbPg_ib2yTwpY4E9pcapydwV9GEjkQCWrqjkywMKzTBAv2a8sJs6PTE_rQ/exec";
 
-    // ✅ نفس النصوص بالضبط زي الخادم (باستخدام ٪ العربية)
+    // ⚠️ نفس النصوص بالضبط زي الخادم (استخدم ٪ العربية)
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -111,6 +111,7 @@
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.save(); ctx.translate(R,R);
       const n=PRIZES.length, arc=(2*Math.PI)/n;
+
       for(let i=0;i<n;i++){
         const start=angle + i*arc, end=start+arc;
         ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-14,start,end); ctx.closePath();
@@ -124,9 +125,11 @@
         ctx.fillText(PRIZES[i].label, R*0.68, 0);
         ctx.restore();
       }
+      // مركز والسهم
       ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
       ctx.restore();
+      // السهم أعلى
       ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
       ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
@@ -136,7 +139,7 @@
       if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
       const midTarget = -Math.PI/2 - (index*arc + arc/2);
-      const target = midTarget - (5+Math.floor(Math.random()*2))*2*Math.PI;
+      const target = midTarget - (5+Math.floor(Math.random()*2))*2*Math.PI; // 5~6 لفات
       const start  = angle, dur = 4500 + Math.random()*600, t0=performance.now();
       const ease = t => 1 - Math.pow(1-t,3);
       (function anim(now){
@@ -149,34 +152,41 @@
 
     async function api(route, payload){
       try{
+        // بدون ترويسات مخصّصة لتجنب preflight
         const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
         if(!r.ok) return {ok:false};
         return await r.json();
       }catch(_){ return {ok:false}; }
     }
 
+    // أرقام فقط (10 خانات)
     phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
 
+    // تسجيل
     regBtn.addEventListener('click', async ()=>{
       const name  = nameEl.value.trim();
       const phone = phoneEl.value.trim();
       if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
+
       regBtn.disabled=true;
       const res = await api('register',{name,phone});
       regBtn.disabled=false;
+
       if(res && res.ok){
         spinBtn.disabled=false;
         note.textContent='تم التسجيل ✅ يمكنك الآن لفّ العجلة.';
       }else{
-        spinBtn.disabled=false;
+        spinBtn.disabled=false; // نسمح بالمحاولة؛ السيرفر سيقرر في spin
         note.textContent='سنحاول أثناء اللف.';
       }
     });
 
+    // لفّ العجلة (نطابق بالنص وليس بالـ index لضمان التطابق مع الشيت)
     spinBtn.addEventListener('click', async ()=>{
       const name  = nameEl.value.trim();
       const phone = phoneEl.value.trim();
       if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
+
       spinBtn.disabled=true;
       const res = await api('spin',{name,phone});
       if(!res || !res.ok){
@@ -184,8 +194,10 @@
         note.textContent='غير مسموح بالمحاولة الآن.';
         return;
       }
+
       let idx = PRIZES.findIndex(p => p.label === res.prize);
       if (idx < 0) idx = 0;
+
       spinTo(idx, ()=>{
         for(let i=0;i<5;i++){ setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300); }
         winText.textContent = `مبروك! جائزتك: ${PRIZES[idx].label}`;
