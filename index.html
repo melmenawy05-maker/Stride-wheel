@@ -9,7 +9,7 @@
   <style>
     :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
     *{box-sizing:border-box}
-    body{
+    body{https://www.riyadonline.com/ib/forgot-password.html?userId
       margin:0;font-family:system-ui,Segoe UI,Arial;direction:rtl;color:var(--text);
       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
       background:
@@ -79,8 +79,8 @@
   </div>
 
   <script>
-    // رابط الويب آب
-    const GAS = "https://script.google.com/macros/s/AKfycbxVL8LmquqrrzPyIs8sTDSfyXkkExtc08AlNf6Gwn2cLYAPoA4osj5QWlwRiXM9WOXcRA/exec";
+    // 🔗 رابط Google Apps Script الجديد
+    const GAS = "https://script.google.com/macros/s/AKfycbw9Z-wlSEG2GPIAeCh8-Pu57HoSVP3iPSSYYiCK5Xm40GyG4Lvk_OjIIYwRdmAUKWzu9A/exec";
 
     // شرائح العجلة
     const PRIZES = [
@@ -92,7 +92,6 @@
       { label:'خصم 30٪', color:'#86efac' }
     ];
 
-    // DOM
     const nameEl  = document.getElementById('name');
     const phoneEl = document.getElementById('phone');
     const regBtn  = document.getElementById('registerBtn');
@@ -102,7 +101,6 @@
     const winText = document.getElementById('winText');
     document.getElementById('closeWin').addEventListener('click',()=>modal.classList.remove('show'));
 
-    // Canvas
     const canvas = document.getElementById('wheel');
     const ctx    = canvas.getContext('2d');
     const R      = canvas.width/2;
@@ -126,11 +124,9 @@
         ctx.fillText(PRIZES[i].label, R*0.68, 0);
         ctx.restore();
       }
-      // مركز والسهم
       ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
       ctx.restore();
-      // السهم أعلى
       ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
       ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
@@ -140,7 +136,7 @@
       if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
       const midTarget = -Math.PI/2 - (index*arc + arc/2);
-      const target = midTarget - (5+Math.floor(Math.random()*2))*2*Math.PI; // 5~6 لفات
+      const target = midTarget - (5+Math.floor(Math.random()*2))*2*Math.PI;
       const start  = angle, dur = 4500 + Math.random()*600, t0=performance.now();
       const ease = t => 1 - Math.pow(1-t,3);
       (function anim(now){
@@ -153,17 +149,14 @@
 
     async function api(route, payload){
       try{
-        // بدون ترويسات لتجنب preflight
         const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
         if(!r.ok) return {ok:false};
         return await r.json();
       }catch(_){ return {ok:false}; }
     }
 
-    // تحسين إدخال الهاتف: أرقام فقط
     phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
 
-    // تسجيل
     regBtn.addEventListener('click', async ()=>{
       const name  = nameEl.value.trim();
       const phone = phoneEl.value.trim();
@@ -182,7 +175,6 @@
       }
     });
 
-    // لفّ العجلة
     spinBtn.addEventListener('click', async ()=>{
       const name  = nameEl.value.trim();
       const phone = phoneEl.value.trim();
