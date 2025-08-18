@@ -40,43 +40,36 @@
     button[disabled]{opacity:.6;cursor:not-allowed}
     .note{margin-top:10px;color:#ffd7a6;min-height:22px}
     canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
-
-    /* نافذة الفوز */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
     .modal.show{display:flex}
     .modal .box{background:#10271c;border:1px solid rgba(255,255,255,.12);border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center}
-    .modal h3{margin:0 0 10px}
     .close{background:#0c1f16;border:1px solid rgba(255,255,255,.18);color:#e8fff3}
   </style>
 </head>
 <body>
   <main class="wrap">
-    <!-- لوحة التسجيل -->
-    <section class="card">
-      <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
-
-      <label for="name">الاسم</label>
-      <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="name" />
-
-      <label for="phone">رقم الجوال</label>
-      <input id="phone" type="tel" placeholder="05xxxxxxxx" inputmode="tel" maxlength="10" autocomplete="tel" />
-
-      <div class="row">
-        <button id="registerBtn">✅ تسجيل البيانات</button>
-        <button id="spinBtn" disabled>🎯 لف العجلة</button>
-      </div>
-
-      <div id="note" class="note"></div>
-    </section>
-
-    <!-- لوحة العجلة -->
+    <!-- العجلة -->
     <section class="card">
       <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
       <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
     </section>
+
+    <!-- التسجيل -->
+    <section class="card">
+      <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
+      <label for="name">الاسم</label>
+      <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="name" />
+      <label for="phone">رقم الجوال</label>
+      <input id="phone" type="tel" placeholder="05xxxxxxxx" inputmode="tel" maxlength="10" autocomplete="tel" />
+      <div class="row">
+        <button id="registerBtn">✅ تسجيل البيانات</button>
+        <button id="spinBtn" disabled>🎯 لف العجلة</button>
+      </div>
+      <div id="note" class="note"></div>
+    </section>
   </main>
 
-  <!-- نافذة فوز -->
+  <!-- نافذة الفوز -->
   <div class="modal" id="winModal" role="dialog" aria-modal="true">
     <div class="box">
       <h3 id="winTitle">مبروك! 🎉</h3>
@@ -86,14 +79,10 @@
   </div>
 
   <script>
-    // 🔗 ضع هنا آخر رابط Web App لديك (لو تغيّر بدّله)
-    const GAS = "https://script.google.com/macros/s/AKfycbxzBKHWOiOU4V_4_5h_fFq-O4YpQuXDTQ15O5RX1eDQLfCmTrlSL4MMRPA0LGcmkWGzXA/exec";
+    // رابط الويب آب
+    const GAS = "https://script.google.com/macros/s/AKfycbxVL8LmquqrrzPyIs8sTDSfyXkkExtc08AlNf6Gwn2cLYAPoA4osj5QWlwRiXM9WOXcRA/exec";
 
-    // ✳️ وضع صارم أم مرن؟
-    // HARD_FAIL=false: فعّل زر اللف محليًا حتى لو السيرفر فشل (عشان ما تتعطل).
-    // HARD_FAIL=true : ممنوع اللف إلا لو السيرفر رجّع ok:true.
-    const HARD_FAIL = false;
-
+    // شرائح العجلة
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -103,7 +92,7 @@
       { label:'خصم 30٪', color:'#86efac' }
     ];
 
-    // عناصر DOM
+    // DOM
     const nameEl  = document.getElementById('name');
     const phoneEl = document.getElementById('phone');
     const regBtn  = document.getElementById('registerBtn');
@@ -111,7 +100,7 @@
     const note    = document.getElementById('note');
     const modal   = document.getElementById('winModal');
     const winText = document.getElementById('winText');
-    const closeWin= document.getElementById('closeWin');
+    document.getElementById('closeWin').addEventListener('click',()=>modal.classList.remove('show'));
 
     // Canvas
     const canvas = document.getElementById('wheel');
@@ -119,7 +108,6 @@
     const R      = canvas.width/2;
     let angle    = -Math.PI/2, spinning=false;
 
-    // رسم العجلة
     function drawWheel(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.save(); ctx.translate(R,R);
@@ -138,28 +126,23 @@
         ctx.fillText(PRIZES[i].label, R*0.68, 0);
         ctx.restore();
       }
-      // مركز وسهم
+      // مركز والسهم
       ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
       ctx.restore();
-      // سهم المؤشر بالأعلى
+      // السهم أعلى
       ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
-      ctx.fillStyle='#f5d38e'; ctx.fill();
-      ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
     drawWheel();
 
-    // دوران للقطاع المستهدف
     function spinTo(index, done){
       if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
-      // استهداف منتصف القطاع تحت السهم مباشرةً
       const midTarget = -Math.PI/2 - (index*arc + arc/2);
-      const extraTurns = 5 + Math.floor(Math.random()*2); // 5~6 لفات
-      const target = midTarget - extraTurns*2*Math.PI;
+      const target = midTarget - (5+Math.floor(Math.random()*2))*2*Math.PI; // 5~6 لفات
       const start  = angle, dur = 4500 + Math.random()*600, t0=performance.now();
       const ease = t => 1 - Math.pow(1-t,3);
-
       (function anim(now){
         const t = Math.min(1,(now - t0)/dur);
         angle = start + (target - start) * ease(t);
@@ -168,37 +151,23 @@
       })(performance.now());
     }
 
-    // طلب API مع مهلة وفشل آمن
     async function api(route, payload){
-      const controller = new AbortController();
-      const timer = setTimeout(()=>controller.abort(), 6000); // 6 ثواني مهلة
       try{
-        const r = await fetch(GAS, {
-          method:'POST',
-          body: JSON.stringify({route, ...payload}),
-          signal: controller.signal
-        });
-        clearTimeout(timer);
+        // بدون ترويسات لتجنب preflight
+        const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
         if(!r.ok) return {ok:false};
         return await r.json();
-      }catch(err){
-        console.warn('API error:', err);
-        clearTimeout(timer);
-        return {ok:false};
-      }
+      }catch(_){ return {ok:false}; }
     }
 
-    // زر التسجيل
-    regBtn.addEventListener('click', async ()=>{
-      const name = nameEl.value.trim();
-      const phone= phoneEl.value.trim().replace(/\D/g,'').slice(0,10);
-      phoneEl.value = phone;
+    // تحسين إدخال الهاتف: أرقام فقط
+    phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
 
-      if(!name || phone.length!==10){
-        note.textContent='أدخل الاسم ورقم جوال 10 أرقام.';
-        if(!HARD_FAIL){ spinBtn.disabled=false; note.textContent += ' (تم تفعيل اللف محليًا)'; }
-        return;
-      }
+    // تسجيل
+    regBtn.addEventListener('click', async ()=>{
+      const name  = nameEl.value.trim();
+      const phone = phoneEl.value.trim();
+      if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
 
       regBtn.disabled=true;
       const res = await api('register',{name,phone});
@@ -208,64 +177,35 @@
         spinBtn.disabled=false;
         note.textContent='تم التسجيل ✅ يمكنك الآن لفّ العجلة.';
       }else{
-        if(HARD_FAIL){
-          spinBtn.disabled=true;
-          note.textContent='تعذّر التسجيل (السيرفر).';
-        }else{
-          spinBtn.disabled=false;
-          note.textContent='تعذّر التسجيل (السيرفر) — تم تفعيل اللف محليًا ✅';
-        }
+        spinBtn.disabled=true;
+        note.textContent='تعذّر التسجيل.';
       }
     });
 
-    // زر لف العجلة
+    // لفّ العجلة
     spinBtn.addEventListener('click', async ()=>{
-      const name = nameEl.value.trim();
-      const phone= phoneEl.value.trim().replace(/\D/g,'').slice(0,10);
-      if(!name || phone.length!==10){
-        note.textContent='أدخل الاسم ورقم جوال 10 أرقام أولاً.';
+      const name  = nameEl.value.trim();
+      const phone = phoneEl.value.trim();
+      if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
+
+      spinBtn.disabled=true;
+      const res = await api('spin',{name,phone});
+      if(!res || !res.ok){
+        spinBtn.disabled=false;
+        note.textContent='غير مسموح بالمحاولة الآن.';
         return;
       }
 
-      spinBtn.disabled=true;
+      let index = typeof res.index==='number' ? (res.index % PRIZES.length) : PRIZES.findIndex(p=>p.label===res.prize);
+      if(index<0) index = Math.floor(Math.random()*PRIZES.length);
 
-      // نحاول السيرفر أولاً
-      let res = await api('spin',{name,phone});
-      let index;
-
-      if(res && res.ok && typeof res.index === 'number'){
-        index = res.index % PRIZES.length;
-      }else if(res && res.ok && res.prize){
-        index = Math.max(0, PRIZES.findIndex(p=>p.label===res.prize));
-        if(index<0) index = Math.floor(Math.random()*PRIZES.length);
-      }else{
-        // فشل السيرفر → اختيار محلي
-        index = Math.floor(Math.random()*PRIZES.length);
-        if(HARD_FAIL){
-          note.textContent='غير مسموح بالمحاولة الآن (السيرفر).';
-          spinBtn.disabled=false; 
-          return;
-        }else{
-          note.textContent='تمت المحاولة محليًا (Fallback).';
-        }
-      }
-
-      // دوران ثم احتفال
       spinTo(index, ()=>{
-        for(let i=0;i<5;i++){
-          setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*250);
-        }
-        document.getElementById('winText').textContent = `مبروك! جائزتك: ${PRIZES[index].label}`;
+        for(let i=0;i<5;i++){ setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300); }
+        winText.textContent = `مبروك! جائزتك: ${PRIZES[index].label}`;
         modal.classList.add('show');
         spinBtn.disabled=false;
       });
     });
-
-    // إغلاق نافذة الفوز
-    document.getElementById('closeWin').addEventListener('click', ()=> modal.classList.remove('show'));
-
-    // إدخال الهاتف: أرقام فقط
-    phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
   </script>
 </body>
 </html>
