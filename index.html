@@ -4,26 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
+  <meta name="theme-color" content="#1a7f3b" />
+  <!-- كونفيتي للاحتفال -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#cde9d6;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:
-      radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
-      radial-gradient(900px 700px at 0% 110%,rgba(13,95,47,.30),transparent 60%),
-      linear-gradient(180deg,#0a1a11,#0b1a12 40%,#08160f);}
+    body{
+      margin:0;font-family:system-ui,Segoe UI,Arial;direction:rtl;color:var(--text);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+      background:
+        radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
+        radial-gradient(900px 700px at 0% 110%,rgba(13,95,47,.30),transparent 60%),
+        linear-gradient(180deg,#0a1a11,#0b1a12 40%,#08160f);
+    }
     .wrap{width:100%;max-width:1100px;display:grid;gap:18px;grid-template-columns:1fr}
     @media(min-width:960px){.wrap{grid-template-columns:520px 1fr;align-items:start}}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:22px;backdrop-filter:blur(6px);box-shadow:0 20px 40px rgba(0,0,0,.35)}
-    .title{margin:0 0 10px;text-align:center;font-weight:900;font-size:26px;color:#eafff1}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:22px;
+      backdrop-filter:blur(6px);box-shadow:0 20px 40px rgba(0,0,0,.35)
+    }
+    .title{margin:0 0 12px;text-align:center;font-weight:900;font-size:26px;color:#eafff1}
     label{display:block;margin:8px 0 6px;color:#d1fae5;font-weight:700}
-    input{width:100%;padding:12px 14px;border-radius:10px;background:#0c1f16;color:var(--text);border:1px solid rgba(255,255,255,.12);font-size:15px}
+    input{
+      width:100%;padding:12px 14px;border-radius:10px;background:#0c1f16;color:var(--text);
+      border:1px solid rgba(255,255,255,.12);font-size:15px
+    }
     input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(35,164,85,.18);outline:0}
     .row{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:10px}
-    button{width:100%;padding:12px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;font-size:16px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#04140b;transition:transform .06s ease,filter .2s}
-    button:hover{filter:brightness(1.05)} button:active{transform:scale(.98)} button[disabled]{opacity:.6;cursor:not-allowed}
-    .note{margin-top:10px;color:#ffd7a6;min-height:20px}
+    button{
+      width:100%;padding:12px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;font-size:16px;
+      background:linear-gradient(90deg,var(--brand),var(--brand2));color:#04140b;transition:transform .06s ease,filter .2s
+    }
+    button:hover{filter:brightness(1.05)} button:active{transform:scale(.98)}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .note{margin-top:10px;color:#ffd7a6;min-height:22px}
     canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+
     /* نافذة الفوز */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
     .modal.show{display:flex}
@@ -40,7 +58,7 @@
       <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
     </section>
 
-    <!-- لوحة النموذج -->
+    <!-- لوحة التسجيل -->
     <section class="card">
       <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
 
@@ -69,10 +87,10 @@
   </div>
 
   <script>
-    // رابط الويب آب (لازم يكون منشور Anyone)
-    const GAS = "https://script.google.com/macros/s/AKfycbyQoAIXbpt1GaPbv5KVhjbmt6g9ZxBw6WafpGeMm33z9dI0RSGsgeb--b2JNcmtDs2syQ/exec";
+    // 🔗 رابط الويب آب
+    const GAS = "https://script.google.com/macros/s/AKfycbzElXOIW6sDmZhDXlW7uueUjlhuB-glSr6VYZ8-KBdFmsK-G27UN2MWaHXeRz_XYaPMDg/exec";
 
-    // إعدادات العجلة
+    // بيانات العجلة (6 شرائح)
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -82,7 +100,7 @@
       { label:'خصم 30٪', color:'#86efac' }
     ];
 
-    // عناصر
+    // عناصر DOM
     const nameEl  = document.getElementById('name');
     const phoneEl = document.getElementById('phone');
     const regBtn  = document.getElementById('registerBtn');
@@ -92,13 +110,13 @@
     const winText = document.getElementById('winText');
     const closeWin= document.getElementById('closeWin');
 
-    // كانفاس
+    // Canvas
     const canvas = document.getElementById('wheel');
     const ctx    = canvas.getContext('2d');
     const R      = canvas.width/2;
     let angle    = -Math.PI/2, spinning=false;
 
-    // رسم العجلة (خط واضح/Bold ومحاذاة أنسب)
+    // رسم العجلة
     function drawWheel(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.save(); ctx.translate(R,R);
@@ -121,18 +139,18 @@
       ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
       ctx.restore();
-      // السهم أعلى
+      // سهم المؤشر بالأعلى
       ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
       ctx.fillStyle='#f5d38e'; ctx.fill();
       ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
     drawWheel();
 
-    // دوران للقطاع المستهدف
+    // دوران للقطاع المحدد
     function spinTo(index, done){
       if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
-      const midTarget = -Math.PI/2 - (index*arc + arc/2); // منتصف القطاع عند رأس السهم
+      const midTarget = -Math.PI/2 - (index*arc + arc/2);
       const extraTurns = 5 + Math.floor(Math.random()*2);
       const target = midTarget - extraTurns*2*Math.PI;
       const start  = angle, dur = 4500 + Math.random()*600, t0=performance.now();
@@ -146,7 +164,7 @@
       })(performance.now());
     }
 
-    // استدعاء API (بدون ترويسات لتفادي CORS preflight)
+    // استدعاء API (بدون ترويسات عشان نتجنب preflight)
     async function api(route, payload){
       try{
         const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
@@ -155,7 +173,7 @@
       }catch(_){ return {ok:false}; }
     }
 
-    // تسجيل
+    // زر التسجيل
     regBtn.addEventListener('click', async ()=>{
       const name = nameEl.value.trim();
       const phone= phoneEl.value.trim();
@@ -170,11 +188,11 @@
         note.textContent='تم التسجيل ✅ يمكنك الآن لفّ العجلة.';
       }else{
         spinBtn.disabled=true;
-        note.textContent='تعذّر التسجيل. تأكّد من نشر الويب آب على Anyone ومن صحة الرقم.';
+        note.textContent='تعذّر التسجيل. تأكّد من نشر الويب آب على Anyone ومن صحة الإعدادات.';
       }
     });
 
-    // لفّ العجلة
+    // زر لف العجلة
     spinBtn.addEventListener('click', async ()=>{
       const name = nameEl.value.trim();
       const phone= phoneEl.value.trim();
@@ -191,17 +209,18 @@
       if(index<0) index = Math.floor(Math.random()*PRIZES.length);
 
       spinTo(index, ()=>{
-        // احتفال 🎉
-        for(let i=0;i<5;i++){
-          setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300);
-        }
+        for(let i=0;i<5;i++){ setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300); }
         winText.textContent = `مبروك! جائزتك: ${PRIZES[index].label}`;
         modal.classList.add('show');
         spinBtn.disabled=false;
       });
     });
 
-    closeWin.addEventListener('click', ()=> modal.classList.remove('show'));
+    // إغلاق نافذة الفوز
+    document.getElementById('closeWin').addEventListener('click', ()=> modal.classList.remove('show'));
+
+    // تحسين إدخال الهاتف: أرقام فقط
+    phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
   </script>
 </body>
 </html>
