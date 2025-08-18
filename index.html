@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
   <meta name="theme-color" content="#1a7f3b" />
-  <!-- كونفيتي للاحتفال -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#cde9d6;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
@@ -88,9 +87,9 @@
 
   <script>
     // 🔗 رابط الويب آب
-    const GAS = "https://script.google.com/macros/s/AKfycbzElXOIW6sDmZhDXlW7uueUjlhuB-glSr6VYZ8-KBdFmsK-G27UN2MWaHXeRz_XYaPMDg/exec";
+    const GAS = "https://script.google.com/macros/s/AKfycbySvn90KfYyDEH5cEQHvU8yHx4JkU5cRjgzP2dEqVqwk4grLgMBuK5aN3ZDRIAWN0z4EA/exec";
 
-    // بيانات العجلة (6 شرائح)
+    // بيانات العجلة
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -146,7 +145,7 @@
     }
     drawWheel();
 
-    // دوران للقطاع المحدد
+    // دوران للقطاع المستهدف
     function spinTo(index, done){
       if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
@@ -164,7 +163,7 @@
       })(performance.now());
     }
 
-    // استدعاء API (بدون ترويسات عشان نتجنب preflight)
+    // استدعاء API (بدون ترويسات لتفادي preflight)
     async function api(route, payload){
       try{
         const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
@@ -219,7 +218,7 @@
     // إغلاق نافذة الفوز
     document.getElementById('closeWin').addEventListener('click', ()=> modal.classList.remove('show'));
 
-    // تحسين إدخال الهاتف: أرقام فقط
+    // تحسين إدخال الهاتف: أرقام فقط (اختياري)
     phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
   </script>
 </body>
