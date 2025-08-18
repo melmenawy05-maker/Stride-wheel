@@ -48,13 +48,11 @@
 </head>
 <body>
   <main class="wrap">
-    <!-- العجلة -->
     <section class="card">
       <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
       <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
     </section>
 
-    <!-- التسجيل -->
     <section class="card">
       <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
       <label for="name">الاسم</label>
@@ -69,7 +67,6 @@
     </section>
   </main>
 
-  <!-- نافذة الفوز -->
   <div class="modal" id="winModal" role="dialog" aria-modal="true">
     <div class="box">
       <h3 id="winTitle">مبروك! 🎉</h3>
@@ -79,10 +76,10 @@
   </div>
 
   <script>
-    // 🔗 رابط Google Apps Script الحالي
+    // 🔗 رابط GAS الحالي
     const GAS = "https://script.google.com/macros/s/AKfycbxVf7EXYfOKXbPg_ib2yTwpY4E9pcapydwV9GEjkQCWrqjkywMKzTBAv2a8sJs6PTE_rQ/exec";
 
-    // ⚠️ نفس النصوص بالضبط زي الخادم (استخدم ٪ العربية)
+    // ✅ اسم الجوائز موحّد مع الخادم (استخدم ٪ العربية)
     const PRIZES = [
       { label:'خصم 5٪',  color:'#1a7f3b' },
       { label:'خصم 10٪', color:'#23a455' },
@@ -92,6 +89,10 @@
       { label:'خصم 30٪', color:'#86efac' }
     ];
 
+    // 🔧 لو حابب تضمن اللفة حتى لو السيرفر رفض: خليه true
+    const ALWAYS_ALLOW_SPIN = true;
+
+    // DOM
     const nameEl  = document.getElementById('name');
     const phoneEl = document.getElementById('phone');
     const regBtn  = document.getElementById('registerBtn');
@@ -105,19 +106,20 @@
     const canvas = document.getElementById('wheel');
     const ctx    = canvas.getContext('2d');
     const R      = canvas.width/2;
-    let angle    = -Math.PI/2, spinning=false;
+    let angle    = -Math.PI/2; // السهم للأعلى
+    let spinning = false;
 
     function drawWheel(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.save(); ctx.translate(R,R);
       const n=PRIZES.length, arc=(2*Math.PI)/n;
-
       for(let i=0;i<n;i++){
         const start=angle + i*arc, end=start+arc;
         ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-14,start,end); ctx.closePath();
         ctx.fillStyle=PRIZES[i].color; ctx.fill();
         ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=2; ctx.stroke();
 
+        // النص
         const mid=start+arc/2;
         ctx.save(); ctx.rotate(mid);
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#082216';
@@ -125,7 +127,7 @@
         ctx.fillText(PRIZES[i].label, R*0.68, 0);
         ctx.restore();
       }
-      // مركز والسهم
+      // مركز
       ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
       ctx.restore();
@@ -135,74 +137,89 @@
     }
     drawWheel();
 
+    // دوران مضمون للقطاع المطلوب (يتوقف تحت السهم)
     function spinTo(index, done){
-      if(spinning) return; spinning=true;
+      if(spinning) return;
+      spinning = true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
-      const midTarget = -Math.PI/2 - (index*arc + arc/2);
-      const target = midTarget - (5+Math.floor(Math.random()*2))*2*Math.PI; // 5~6 لفات
-      const start  = angle, dur = 4500 + Math.random()*600, t0=performance.now();
-      const ease = t => 1 - Math.pow(1-t,3);
-      (function anim(now){
-        const t = Math.min(1,(now - t0)/dur);
-        angle = start + (target - start) * ease(t);
+      const current = angle;
+      const sectorMid = index*arc + arc/2;         // منتصف القطاع بالنسبة للزاوية 0
+      const targetAngleAtPointer = -Math.PI/2 - sectorMid; // علشان المؤشر ثابت لأعلى
+      const turns = 5 + Math.floor(Math.random()*2);       // 5–6 لفات
+      const target = targetAngleAtPointer - turns*2*Math.PI;
+
+      const dur = 4800; const t0 = performance.now();
+      const ease = t => 1 - Math.pow(1-t,3); // easeOutCubic
+
+      (function step(now){
+        const t = Math.min(1, (now - t0)/dur);
+        angle = current + (target - current) * ease(t);
         drawWheel();
-        if(t<1) requestAnimationFrame(anim); else { spinning=false; done && done(); }
+        if(t < 1){ requestAnimationFrame(step); }
+        else { spinning=false; done && done(); }
       })(performance.now());
     }
 
+    // API بسيطة بدون ترويسات (تجنب preflight)
     async function api(route, payload){
       try{
-        // بدون ترويسات مخصّصة لتجنب preflight
-        const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
-        if(!r.ok) return {ok:false};
-        return await r.json();
-      }catch(_){ return {ok:false}; }
+        const res = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
+        if(!res.ok) return {ok:false};
+        const data = await res.json();
+        console.log('API:', route, data);
+        return data;
+      }catch(err){
+        console.warn('API error:', route, err);
+        return {ok:false};
+      }
     }
 
-    // أرقام فقط (10 خانات)
+    // تهيئة الحقول
     phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
 
-    // تسجيل
+    // تسجيل: يفعّل زر اللف حتى لو السيرفر رفض (عشان ما تتعطلش)
     regBtn.addEventListener('click', async ()=>{
       const name  = nameEl.value.trim();
       const phone = phoneEl.value.trim();
       if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
 
-      regBtn.disabled=true;
-      const res = await api('register',{name,phone});
-      regBtn.disabled=false;
+      regBtn.disabled = true;
+      const r = await api('register',{name,phone});
+      regBtn.disabled = false;
 
-      if(res && res.ok){
-        spinBtn.disabled=false;
-        note.textContent='تم التسجيل ✅ يمكنك الآن لفّ العجلة.';
-      }else{
-        spinBtn.disabled=false; // نسمح بالمحاولة؛ السيرفر سيقرر في spin
-        note.textContent='سنحاول أثناء اللف.';
-      }
+      spinBtn.disabled = false; // نفعّل دايمًا
+      note.textContent = (r && r.ok) ? 'تم التسجيل ✅ يمكنك الآن اللف.' : 'تم تفعيل اللف — سنحاول مع السيرفر أثناء اللف.';
     });
 
-    // لفّ العجلة (نطابق بالنص وليس بالـ index لضمان التطابق مع الشيت)
+    // لف العجلة: نحاول السيرفر أولًا، ولو رفض نختار محليًا
     spinBtn.addEventListener('click', async ()=>{
       const name  = nameEl.value.trim();
       const phone = phoneEl.value.trim();
       if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
+      if(spinning) return;
 
-      spinBtn.disabled=true;
-      const res = await api('spin',{name,phone});
-      if(!res || !res.ok){
-        spinBtn.disabled=false;
-        note.textContent='غير مسموح بالمحاولة الآن.';
+      spinBtn.disabled = true;
+      let res = await api('spin',{name,phone});
+      let idx;
+
+      if(res && res.ok && typeof res.prize === 'string'){
+        idx = PRIZES.findIndex(p => p.label === res.prize);
+        if(idx < 0) idx = Math.floor(Math.random()*PRIZES.length);
+      }else if(ALWAYS_ALLOW_SPIN){
+        // فشل السيرفر → اختيار محلي
+        idx = Math.floor(Math.random()*PRIZES.length);
+        note.textContent = '(تمت المحاولة محليًا)';
+      }else{
+        spinBtn.disabled = false;
+        note.textContent = 'غير مسموح بالمحاولة الآن.';
         return;
       }
 
-      let idx = PRIZES.findIndex(p => p.label === res.prize);
-      if (idx < 0) idx = 0;
-
       spinTo(idx, ()=>{
-        for(let i=0;i<5;i++){ setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300); }
-        winText.textContent = `مبروك! جائزتك: ${PRIZES[idx].label}`;
+        for(let i=0;i<5;i++){ setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*250); }
+        document.getElementById('winText').textContent = `مبروك! جائزتك: ${PRIZES[idx].label}`;
         modal.classList.add('show');
-        spinBtn.disabled=false;
+        spinBtn.disabled = false;
       });
     });
   </script>
