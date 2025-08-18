@@ -4,217 +4,103 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
-  <meta name="theme-color" content="#1a7f3b" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
-    *{box-sizing:border-box}
-    body{
-      margin:0;font-family:system-ui,Segoe UI,Arial;direction:rtl;color:var(--text);
-      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
-      background:
-        radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
-        radial-gradient(900px 700px at 0% 110%,rgba(13,95,47,.30),transparent 60%),
-        linear-gradient(180deg,#0a1a11,#0b1a12 40%,#08160f);
-    }
-    .wrap{width:100%;max-width:1100px;display:grid;gap:18px;grid-template-columns:1fr}
-    @media(min-width:960px){.wrap{grid-template-columns:520px 1fr;align-items:start}}
-    .card{
-      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:22px;
-      backdrop-filter:blur(6px);box-shadow:0 20px 40px rgba(0,0,0,.35)
-    }
-    .title{margin:0 0 12px;text-align:center;font-weight:900;font-size:26px;color:#eafff1}
-    label{display:block;margin:8px 0 6px;color:#d1fae5;font-weight:700}
-    input{
-      width:100%;padding:12px 14px;border-radius:10px;background:#0c1f16;color:var(--text);
-      border:1px solid rgba(255,255,255,.12);font-size:15px
-    }
-    input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(35,164,85,.18);outline:0}
-    .row{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:10px}
-    button{
-      width:100%;padding:12px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;font-size:16px;
-      background:linear-gradient(90deg,var(--brand),var(--brand2));color:#04140b;transition:transform .06s ease,filter .2s
-    }
-    button:hover{filter:brightness(1.05)} button:active{transform:scale(.98)}
-    button[disabled]{opacity:.6;cursor:not-allowed}
-    .note{margin-top:10px;color:#ffd7a6;min-height:22px}
-    canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+    body {margin:0;font-family:Arial,system-ui;background:#0b1a12;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    .card{background:#10271c;padding:20px;border-radius:12px;max-width:600px;width:100%;text-align:center}
+    canvas{max-width:400px;width:100%}
+    input,button{margin:6px 0;padding:10px;width:100%;border-radius:6px;border:none;font-size:16px}
+    button{background:#23a455;color:#fff;cursor:pointer}
+    button[disabled]{opacity:.5;cursor:not-allowed}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center}
     .modal.show{display:flex}
-    .modal .box{background:#10271c;border:1px solid rgba(255,255,255,.12);border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center}
-    .close{background:#0c1f16;border:1px solid rgba(255,255,255,.18);color:#e8fff3}
+    .box{background:#fff;color:#000;padding:20px;border-radius:8px;max-width:300px}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <!-- العجلة -->
-    <section class="card">
-      <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
-      <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
-    </section>
+  <div class="card">
+    <h2>🎉 عجلة اليوم الوطني مع Stride</h2>
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <input id="name" placeholder="الاسم" />
+    <input id="phone" placeholder="05xxxxxxxx" maxlength="10" />
+    <button id="registerBtn">✅ تسجيل البيانات</button>
+    <button id="spinBtn" disabled>🎯 لف العجلة</button>
+    <div id="note"></div>
+  </div>
 
-    <!-- التسجيل -->
-    <section class="card">
-      <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
-      <label for="name">الاسم</label>
-      <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="name" />
-      <label for="phone">رقم الجوال</label>
-      <input id="phone" type="tel" placeholder="05xxxxxxxx" inputmode="tel" maxlength="10" autocomplete="tel" />
-      <div class="row">
-        <button id="registerBtn">✅ تسجيل البيانات</button>
-        <button id="spinBtn" disabled>🎯 لف العجلة</button>
-      </div>
-      <div id="note" class="note"></div>
-    </section>
-  </main>
-
-  <!-- نافذة الفوز -->
-  <div class="modal" id="winModal" role="dialog" aria-modal="true">
+  <div class="modal" id="winModal">
     <div class="box">
-      <h3 id="winTitle">مبروك! 🎉</h3>
+      <h3>مبروك 🎉</h3>
       <p id="winText"></p>
-      <button class="close" id="closeWin">حسناً</button>
+      <button onclick="document.getElementById('winModal').classList.remove('show')">إغلاق</button>
     </div>
   </div>
 
-  <script>
-    // 🔗 ضع هنا رابط Web App (آخر /exec عندك)
-    const GAS = "https://script.google.com/macros/s/AKfycbxVf7EXYfOKXbPg_ib2yTwpY4E9pcapydwV9GEjkQCWrqjkywMKzTBAv2a8sJs6PTE_rQ/exec";
+<script>
+  // 🔗 لينك الـ exec بتاعك
+  const GAS = "https://script.google.com/macros/s/AKfycbzrCibn1FSL7j89aDWpA3o6wUq-BaWxrko2MloynLZ--10pr3LwGsrqVTYZKTAeIOQ9bA/exec"; 
 
-    // ✅ نفس نصوص الجوائز بالضبط (٪ العربية)
-    const PRIZES = [
-      { label:'خصم 5٪',  color:'#1a7f3b' },
-      { label:'خصم 10٪', color:'#23a455' },
-      { label:'خصم 15٪', color:'#0ea5e9' },
-      { label:'خصم 20٪', color:'#2dd4bf' },
-      { label:'خصم 25٪', color:'#22c55e' },
-      { label:'خصم 30٪', color:'#86efac' }
-    ];
+  const PRIZES = ['خصم 5٪','خصم 10٪','خصم 15٪','خصم 20٪','خصم 25٪','خصم 30٪'];
 
-    // DOM
-    const nameEl  = document.getElementById('name');
-    const phoneEl = document.getElementById('phone');
-    const regBtn  = document.getElementById('registerBtn');
-    const spinBtn = document.getElementById('spinBtn');
-    const note    = document.getElementById('note');
-    const modal   = document.getElementById('winModal');
-    const winText = document.getElementById('winText');
-    document.getElementById('closeWin').addEventListener('click',()=>modal.classList.remove('show'));
-
-    // Canvas
-    const canvas = document.getElementById('wheel');
-    const ctx    = canvas.getContext('2d');
-    const R      = canvas.width/2;
-    let angle    = -Math.PI/2; // السهم للأعلى
-    let spinning = false;
-
-    function drawWheel(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.save(); ctx.translate(R,R);
-      const n=PRIZES.length, arc=(2*Math.PI)/n;
-      for(let i=0;i<n;i++){
-        const start=angle + i*arc, end=start+arc;
-        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-14,start,end); ctx.closePath();
-        ctx.fillStyle=PRIZES[i].color; ctx.fill();
-        ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=2; ctx.stroke();
-
-        const mid=start+arc/2;
-        ctx.save(); ctx.rotate(mid);
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#082216';
-        ctx.font='700 20px system-ui,Arial';
-        ctx.fillText(PRIZES[i].label, R*0.68, 0);
-        ctx.restore();
-      }
-      // مركز
-      ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
+  const canvas = document.getElementById("wheel"), ctx = canvas.getContext("2d"), R=200;
+  let angle=-Math.PI/2, spinning=false;
+  function drawWheel(){
+    ctx.clearRect(0,0,400,400);ctx.save();ctx.translate(R,R);
+    const arc=2*Math.PI/PRIZES.length;
+    for(let i=0;i<PRIZES.length;i++){
+      const start=angle+i*arc, end=start+arc;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R-10,start,end);ctx.closePath();
+      ctx.fillStyle=i%2?"#23a455":"#1a7f3b";ctx.fill();
+      const mid=start+arc/2;ctx.save();ctx.rotate(mid);
+      ctx.fillStyle="#fff";ctx.font="bold 16px Arial";ctx.textAlign="center";ctx.fillText(PRIZES[i],120,0);
       ctx.restore();
-      // السهم أعلى
-      ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
-      ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
-    drawWheel();
+    ctx.restore();
+    ctx.fillStyle="gold";ctx.beginPath();ctx.moveTo(190,10);ctx.lineTo(210,10);ctx.lineTo(200,40);ctx.closePath();ctx.fill();
+  }
+  drawWheel();
 
-    // دوران مضبوط للقطاع المطلوب (يتوقف تحت السهم)
-    function spinTo(index, done){
-      if(spinning) return;
-      spinning = true;
-      const n=PRIZES.length, arc=(2*Math.PI)/n;
-      const current = angle;
-      const sectorMid = index*arc + arc/2;               // منتصف القطاع
-      const targetAngleAtPointer = -Math.PI/2 - sectorMid; // علشان المؤشر ثابت بالأعلى
-      const turns = 5 + Math.floor(Math.random()*2);       // 5–6 دورات
-      const target = targetAngleAtPointer - turns*2*Math.PI;
+  function spinTo(index,done){
+    if(spinning)return;spinning=true;
+    const arc=2*Math.PI/PRIZES.length;
+    const target=-Math.PI/2-(index*arc+arc/2)-5*2*Math.PI;
+    const start=angle,dur=4000,t0=performance.now();
+    (function anim(t){
+      const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);
+      angle=start+(target-start)*e;drawWheel();
+      if(p<1)requestAnimationFrame(anim);else{spinning=false;done&&done();}
+    })(t0);
+  }
 
-      const dur = 4800; const t0 = performance.now();
-      const ease = t => 1 - Math.pow(1-t,3); // easeOutCubic
-      (function step(now){
-        const t = Math.min(1, (now - t0)/dur);
-        angle = current + (target - current) * ease(t);
-        drawWheel();
-        if(t < 1){ requestAnimationFrame(step); } else { spinning=false; done && done(); }
-      })(performance.now());
-    }
+  async function api(route,payload){
+    try{
+      const r=await fetch(GAS,{method:"POST",body:JSON.stringify({route,...payload})});
+      return await r.json();
+    }catch{return{ok:false};}
+  }
 
-    // استدعاء API بدون ترويسات (لتفادي preflight)
-    async function api(route, payload){
-      try{
-        const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
-        if(!r.ok) return {ok:false};
-        return await r.json();
-      }catch(_){ return {ok:false}; }
-    }
+  const nameEl=document.getElementById("name"),phoneEl=document.getElementById("phone"),
+        regBtn=document.getElementById("registerBtn"),spinBtn=document.getElementById("spinBtn"),
+        note=document.getElementById("note"),winText=document.getElementById("winText"),modal=document.getElementById("winModal");
 
-    // إدخال الجوال: أرقام فقط 10 خانات
-    phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
+  regBtn.onclick=async()=>{
+    if(!nameEl.value.trim()||phoneEl.value.trim().length!==10){note.textContent="أدخل الاسم ورقم 10 أرقام";return;}
+    const r=await api("register",{name:nameEl.value,phone:phoneEl.value});
+    if(r.ok){note.textContent="تم التسجيل ✅";spinBtn.disabled=false;}
+    else{note.textContent="مشكلة في التسجيل، لكن جرب اللف.";spinBtn.disabled=false;}
+  };
 
-    // تسجيل
-    regBtn.addEventListener('click', async ()=>{
-      const name  = nameEl.value.trim();
-      const phone = phoneEl.value.trim();
-      if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
-
-      regBtn.disabled=true;
-      const res = await api('register',{name,phone});
-      regBtn.disabled=false;
-
-      if(res && res.ok){
-        spinBtn.disabled=false;
-        note.textContent='تم التسجيل ✅ يمكنك الآن لفّ العجلة.';
-      }else{
-        // حتى لو فشل التسجيل، نسمح بالمحاولة—السيرفر سيقرر عند spin
-        spinBtn.disabled=false;
-        note.textContent='سنحاول أثناء اللف.';
-      }
+  spinBtn.onclick=async()=>{
+    if(spinning)return;
+    const res=await api("spin",{name:nameEl.value,phone:phoneEl.value});
+    if(!res||!res.ok||!res.prize){note.textContent="غير مسموح الآن";spinBtn.disabled=false;return;}
+    const idx=PRIZES.findIndex(p=>p===res.prize);
+    spinTo(idx<0?0:idx,()=>{
+      confetti({particleCount:120,spread:70,origin:{y:0.6}});
+      winText.textContent="جائزتك: "+res.prize;
+      modal.classList.add("show");
     });
-
-    // 🎯 لفّ العجلة — نستخدم prize النصية فقط (لا نستخدم index إطلاقًا)
-    spinBtn.addEventListener('click', async ()=>{
-      const name  = nameEl.value.trim();
-      const phone = phoneEl.value.trim();
-      if(!name || phone.length!==10){ note.textContent='أدخل الاسم ورقم جوال 10 أرقام.'; return; }
-      if(spinning) return;
-
-      spinBtn.disabled = true;
-      const res = await api('spin',{name,phone});
-      if(!res || !res.ok || !res.prize){
-        spinBtn.disabled=false;
-        note.textContent='غير مسموح بالمحاولة الآن.';
-        return;
-      }
-
-      // نحدد القطاع بالنص القادم من الخادم (تطابق كامل مع الشيت)
-      let idx = PRIZES.findIndex(p => p.label === res.prize);
-      if (idx < 0) idx = 0; // احتياط لو مسافة أو اختلاف طفيف
-
-      spinTo(idx, ()=>{
-        for(let i=0;i<5;i++){ setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300); }
-        document.getElementById('winText').textContent = `مبروك! جائزتك: ${PRIZES[idx].label}`;
-        modal.classList.add('show');
-        spinBtn.disabled=false;
-      });
-    });
-  </script>
+  };
+</script>
 </body>
 </html>
