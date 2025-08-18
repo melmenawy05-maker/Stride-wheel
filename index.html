@@ -1,232 +1,86 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
-  <meta name="theme-color" content="#1a7f3b" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#b7e4c7;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:
-      radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
-      radial-gradient(900px 700px at 0% 110%,rgba(13,95,47,.30),transparent 60%),
-      linear-gradient(180deg,#0a1a11,#0b1a12 40%,#08160f);}
-    .container{width:100%;max-width:1100px;display:grid;gap:18px;grid-template-columns:1fr}
-    @media(min-width:960px){.container{grid-template-columns:520px 1fr;align-items:start}}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:22px;backdrop-filter:blur(6px);box-shadow:0 20px 40px rgba(0,0,0,.35)}
-    .brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px}
-    .brand img{width:140px;height:auto;object-fit:contain}
-    .title{font-size:26px;margin:0;font-weight:800;color:#e8fff3;text-align:center}
-    label{display:block;margin:10px 0 6px;color:#d1fae5;font-weight:700}
-    input{width:100%;padding:12px 14px;border-radius:10px;background:#0c1f16;color:var(--text);border:1px solid rgba(255,255,255,.12);font-size:15px}
-    input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(35,164,85,.18);outline:0}
-    .row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
-    button{width:100%;padding:12px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;font-size:16px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#04140b;transition:transform .06s ease,filter .2s}
-    button:hover{filter:brightness(1.05)} button:active{transform:scale(.98)} button[disabled]{opacity:.6;cursor:not-allowed}
-    .chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
-    .chip{border:1px solid rgba(255,255,255,.16);color:#cde9d6;padding:6px 10px;border-radius:999px;font-size:12px}
-    canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
-    .toast{margin-top:10px;font-size:13px;color:#ffd7a6;display:none}
-    .toast.show{display:block}
-    /* فوز */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
-    .modal.show{display:flex}
-    .modal .box{background:var(--card);border:1px solid rgba(255,255,255,.12);border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center}
-    .modal h3{margin:0 0 8px;font-size:22px}
-    .modal p{margin:0 0 16px;color:var(--muted)}
-    .close{background:#0c1f16;border:1px solid rgba(255,255,255,.18);color:#e8fff3}
+    body{font-family:Arial, sans-serif;text-align:center;background:#0b1a12;color:#fff;margin:0;padding:20px}
+    .card{background:#123;padding:20px;margin:20px auto;border-radius:10px;max-width:400px}
+    input,button{padding:10px;margin:5px;border-radius:6px}
+    button{cursor:pointer;background:#23a455;color:#fff;border:none}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    canvas{margin-top:20px}
   </style>
 </head>
 <body>
-  <main class="container">
-    <!-- لوحة العجلة -->
-    <section class="card">
-      <div class="brand">
-        <!-- غيّر المصدر لو اللوجو بمكان آخر -->
-        <img src="https://raw.githubusercontent.com/melmenawy05-maker/Stride-wheel/main/logo.png" alt="STRIDE Logo" />
-        <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
-      </div>
-      <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
-    </section>
-
-    <!-- لوحة البيانات -->
-    <section class="card">
-      <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
-
-      <label for="name">الاسم</label>
-      <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="name" />
-
-      <label for="phone">رقم الجوال</label>
-      <input id="phone" type="tel" placeholder="05xxxxxxxx" inputmode="tel" autocomplete="tel" maxlength="10" />
-
-      <div class="row" style="margin-top:10px">
-        <button id="registerBtn">تسجيل البيانات ✅</button>
-        <button id="spinBtn" disabled>لف العجلة 🎯</button>
-      </div>
-
-      <div id="toast" class="toast"></div>
-
-      <div class="chips" id="chips"></div>
-    </section>
-  </main>
-
-  <!-- نافذة فوز -->
-  <div class="modal" id="winModal" role="dialog" aria-modal="true">
-    <div class="box">
-      <h3 id="winTitle">مبروك! 🎉</h3>
-      <p id="winText"></p>
-      <button class="close" id="closeWin">حسناً</button>
-    </div>
+  <div class="card">
+    <h2>🎉 عجلة اليوم الوطني مع Stride</h2>
+    <label>الاسم</label><br>
+    <input id="name" placeholder="الاسم"><br>
+    <label>رقم الجوال</label><br>
+    <input id="phone" placeholder="05xxxxxxxx" maxlength="10"><br>
+    <button id="registerBtn">تسجيل البيانات ✅</button>
+    <button id="spinBtn" disabled>لف العجلة 🎯</button>
+    <p id="msg"></p>
+    <canvas id="wheel" width="300" height="300"></canvas>
   </div>
 
   <script>
-    // ✅ رابط الويب آب (الخادم)
-    const GAS =https://script.google.com/macros/s/AKfycbyQoAIXbpt1GaPbv5KVhjbmt6g9ZxBw6WafpGeMm33z9dI0RSGsgeb--b2JNcmtDs2syQ/exec
+    const GAS="https://script.google.com/macros/s/AKfycbyQoAIXbpt1GaPbv5KVhjbmt6g9ZxBw6WafpGeMm33z9dI0RSGsgeb--b2JNcmtDs2syQ/exec";
 
-    // الجوائز الظاهرة على العجلة
-    const PRIZES = [
-      { label:'خصم 5٪',  color:'#1a7f3b' },
-      { label:'خصم 10٪', color:'#23a455' },
-      { label:'خصم 15٪', color:'#0ea5e9' },
-      { label:'خصم 20٪', color:'#2dd4bf' },
-      { label:'خصم 25٪', color:'#22c55e' },
-      { label:'خصم 30٪', color:'#86efac' }
-    ];
+    const wheel=document.getElementById('wheel'), ctx=wheel.getContext('2d');
+    const prizes=['خصم 5٪','خصم 10٪','خصم 15٪','خصم 20٪','خصم 25٪','خصم 30٪'];
+    let currentAngle=0, spinning=false;
 
-    // عناصر DOM
-    const nameEl   = document.getElementById('name');
-    const phoneEl  = document.getElementById('phone');
-    const regBtn   = document.getElementById('registerBtn');
-    const spinBtn  = document.getElementById('spinBtn');
-    const toast    = document.getElementById('toast');
-    const chipsBox = document.getElementById('chips');
-    const modal    = document.getElementById('winModal');
-    const winText  = document.getElementById('winText');
-    const closeWin = document.getElementById('closeWin');
-
-    // كانفاس العجلة
-    const canvas = document.getElementById('wheel');
-    const ctx    = canvas.getContext('2d');
-    const size   = canvas.width, R = size/2;
-    let currentAngle = -Math.PI/2, spinning=false;
-
-    // تحقق محلي هادئ: 10 أرقام وبادئات محددة
-    const PHONE_RE = /^(050|053|054|056|011|012|013)\d{7}$/;
-    const phoneValid = v => PHONE_RE.test(String(v||'').replace(/\D/g,''));
-
-    // رسائل قصيرة
-    function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),3000); }
-
-    // شرائح الجوائز تحت النموذج
-    function paintChips(){
-      chipsBox.innerHTML='';
-      PRIZES.forEach(p=>{
-        const s=document.createElement('span'); s.className='chip'; s.textContent=p.label; chipsBox.appendChild(s);
-      });
-    }
-
-    // رسم العجلة
-    function drawWheel(){
-      ctx.clearRect(0,0,size,size); ctx.save(); ctx.translate(R,R);
-      const n=PRIZES.length, arc=(Math.PI*2)/n;
-      for(let i=0;i<n;i++){
-        const start=currentAngle+i*arc, end=start+arc;
-        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-12,start,end); ctx.closePath();
-        ctx.fillStyle=PRIZES[i].color; ctx.fill();
-        ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=2; ctx.stroke();
-
-        const mid=start+arc/2;
-        ctx.save(); ctx.rotate(mid);
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.direction='rtl';
-        ctx.fillStyle='#04140b'; ctx.font='700 18px system-ui,Arial';
-        ctx.fillText(PRIZES[i].label, R*0.68, 0);
-        ctx.restore();
+    function draw(){
+      ctx.clearRect(0,0,300,300);
+      const arc=2*Math.PI/prizes.length;
+      for(let i=0;i<prizes.length;i++){
+        ctx.beginPath();ctx.moveTo(150,150);
+        ctx.arc(150,150,140,currentAngle+i*arc,currentAngle+(i+1)*arc);
+        ctx.fillStyle=i%2?"#23a455":"#1a7f3b";ctx.fill();
+        ctx.save();ctx.translate(150,150);ctx.rotate(currentAngle+(i+0.5)*arc);
+        ctx.fillStyle="#fff";ctx.font="bold 14px Arial";
+        ctx.fillText(prizes[i],60,0);ctx.restore();
       }
-      // مركز وسهم
-      ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
-      ctx.restore();
-      ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
-      ctx.fillStyle='#f5d38e'; ctx.fill(); ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
+    draw();
 
-    // دوران إلى قطاع محدد
-    function spinTo(index, onDone){
-      if(spinning) return; spinning=true;
-      const n=PRIZES.length, arc=(Math.PI*2)/n;
-      const targetMid = -Math.PI/2 - index*arc - arc/2;
-      const extra=5 + Math.floor(Math.random()*2);
-      const targetAngle = targetMid - extra*2*Math.PI;
-      const dur = 4200 + Math.random()*800;
-      const start=currentAngle, t0=performance.now();
-      const ease=t=>1 - Math.pow(1-t,3);
-      (function frame(now){
-        const t=Math.min(1,(now-t0)/dur);
-        currentAngle = start + (targetAngle-start)*ease(t);
-        drawWheel();
-        if(t<1) requestAnimationFrame(frame); else {spinning=false; onDone&&onDone();}
-      })(performance.now());
-    }
-
-    // استدعاء API (بدون ترويسات لتفادي preflight)
-    async function apiPost(route, payload){
+    async function api(route,data){
       try{
-        const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
-        if(!r.ok) return { ok:false };
+        let r=await fetch(GAS,{method:'POST',body:JSON.stringify({route,...data})});
         return await r.json();
-      }catch(_){ return { ok:false }; }
+      }catch{return {ok:false}}
     }
 
-    // تسجيل البيانات → يفعّل زر اللفة لو ok:true
-    regBtn.addEventListener('click', async ()=>{
-      const name  = nameEl.value.trim();
-      const phone = phoneEl.value.trim();
-      if(!name){ showToast('من فضلك اكتب الاسم'); return; }
-      if(!phoneValid(phone)){ showToast('تأكد من رقم الجوال'); return; }
+    registerBtn.onclick=async()=>{
+      const name=name.value.trim(), phone=phone.value.trim();
+      if(!name||!phone){msg.textContent="أكمل البيانات";return;}
+      let res=await api('register',{name,phone});
+      if(res.ok){msg.textContent="تم التسجيل ✅";spinBtn.disabled=false;}
+      else msg.textContent="تعذر التسجيل";
+    };
 
-      regBtn.disabled=true;
-      const res = await apiPost('register',{name,phone});
-      regBtn.disabled=false;
-
-      if(res && res.ok){
-        spinBtn.disabled=true;
-        showToast('تم تسجيل بياناتك ✅');
-      }else{
-        spinBtn.disabled=true;
-        showToast('تعذّر التسجيل الآن');
-      }
-    });
-
-    // لفّ العجلة
-    spinBtn.addEventListener('click', async ()=>{
-      const name  = nameEl.value.trim();
-      const phone = phoneEl.value.trim();
-      if(!name || !phoneValid(phone)){ showToast('أكمل البيانات أولًا'); return; }
-
-      spinBtn.disabled=true;
-      const res = await apiPost('spin',{name,phone});
-      if(!res || !res.ok){ spinBtn.disabled=false; showToast('غير مسموح بالمحاولة الآن'); return; }
-
-      let idx = typeof res.index==='number' ? res.index : PRIZES.findIndex(p=>p.label===res.prize);
-      if(idx<0) idx = Math.floor(Math.random()*PRIZES.length);
-
-      spinTo(idx, ()=>{
-        // احتفال 🎉 + نافذة فوز
-        for (let i=0;i<5;i++){
-          setTimeout(()=>confetti({particleCount:160, spread:70, origin:{y:0.6}}), i*350);
+    spinBtn.onclick=async()=>{
+      if(spinning) return;
+      let res=await api('spin',{name:name.value,phone:phone.value});
+      if(!res.ok){msg.textContent="لا يمكنك اللعب الآن";return;}
+      const index=res.index, arc=2*Math.PI/prizes.length;
+      const target=-index*arc-Math.PI/2+Math.PI*6;
+      const start=currentAngle, duration=4000, t0=performance.now();
+      spinning=true;
+      (function anim(t){
+        let p=Math.min((t-t0)/duration,1);
+        currentAngle=start+(target-start)*(1-Math.pow(1-p,3));
+        draw();
+        if(p<1) requestAnimationFrame(anim); else{
+          spinning=false;
+          confetti();
+          msg.textContent="🎉 مبروك! "+prizes[index];
         }
-        winText.textContent = `مبروك يا ${name}! جائزتك: ${PRIZES[idx].label}`;
-        modal.classList.add('show');
-        spinBtn.disabled=false;
-      });
-    });
-
-    closeWin.addEventListener('click', ()=> modal.classList.remove('show'));
-
-    // بدء
-    paintChips(); drawWheel();
+      })(performance.now());
+    };
   </script>
 </body>
 </html>
