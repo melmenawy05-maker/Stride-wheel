@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
   <meta name="theme-color" content="#1a7f3b" />
+  <!-- مكتبة مؤثرات الفوز -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#cde9d6;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
+    :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
     *{box-sizing:border-box}
     body{
       margin:0;font-family:system-ui,Segoe UI,Arial;direction:rtl;color:var(--text);
@@ -44,7 +45,7 @@
     /* نافذة الفوز */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
     .modal.show{display:flex}
-    .modal .box{background:var(--card);border:1px solid rgba(255,255,255,.12);border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center}
+    .modal .box{background:#10271c;border:1px solid rgba(255,255,255,.12);border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center}
     .modal h3{margin:0 0 10px}
     .close{background:#0c1f16;border:1px solid rgba(255,255,255,.18);color:#e8fff3}
   </style>
@@ -86,8 +87,8 @@
   </div>
 
   <script>
-    // 🔗 رابط الويب آب
-    const GAS = "https://script.google.com/macros/s/AKfycbySvn90KfYyDEH5cEQHvU8yHx4JkU5cRjgzP2dEqVqwk4grLgMBuK5aN3ZDRIAWN0z4EA/exec";
+    // 🔗 رابط الويب آب (تأكد أنه منشور Web app → Anyone)
+    const GAS = "https://script.google.com/macros/s/AKfycbxzBKHWOiOU4V_4_5h_fFq-O4YpQuXDTQ15O5RX1eDQLfCmTrlSL4MMRPA0LGcmkWGzXA/exec";
 
     // بيانات العجلة
     const PRIZES = [
@@ -145,7 +146,7 @@
     }
     drawWheel();
 
-    // دوران للقطاع المستهدف
+    // دوران للقطاع المحدد
     function spinTo(index, done){
       if(spinning) return; spinning=true;
       const n=PRIZES.length, arc=(2*Math.PI)/n;
@@ -218,7 +219,7 @@
     // إغلاق نافذة الفوز
     document.getElementById('closeWin').addEventListener('click', ()=> modal.classList.remove('show'));
 
-    // تحسين إدخال الهاتف: أرقام فقط (اختياري)
+    // تحسين إدخال الهاتف: أرقام فقط
     phoneEl.addEventListener('input', ()=>{ phoneEl.value = phoneEl.value.replace(/\D/g,'').slice(0,10); });
   </script>
 </body>
