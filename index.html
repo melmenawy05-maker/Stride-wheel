@@ -31,6 +31,11 @@
 
     const wheel=document.getElementById('wheel'), ctx=wheel.getContext('2d');
     const prizes=['خصم 5٪','خصم 10٪','خصم 15٪','خصم 20٪','خصم 25٪','خصم 30٪'];
+    const registerBtn=document.getElementById('registerBtn');
+    const spinBtn=document.getElementById('spinBtn');
+    const msg=document.getElementById('msg');
+    const nameInput=document.getElementById('name');
+    const phoneInput=document.getElementById('phone');
     let currentAngle=0, spinning=false;
 
     function draw(){
@@ -51,11 +56,14 @@
       try{
         let r=await fetch(GAS,{method:'POST',body:JSON.stringify({route,...data})});
         return await r.json();
-      }catch{return {ok:false}}
+      }catch(err){
+        console.error(err);
+        return {ok:false};
+      }
     }
 
     registerBtn.onclick=async()=>{
-      const name=name.value.trim(), phone=phone.value.trim();
+      const name=nameInput.value.trim(), phone=phoneInput.value.trim();
       if(!name||!phone){msg.textContent="أكمل البيانات";return;}
       let res=await api('register',{name,phone});
       if(res.ok){msg.textContent="تم التسجيل ✅";spinBtn.disabled=false;}
@@ -64,7 +72,7 @@
 
     spinBtn.onclick=async()=>{
       if(spinning) return;
-      let res=await api('spin',{name:name.value,phone:phone.value});
+      let res=await api('spin',{name:nameInput.value,phone:phoneInput.value});
       if(!res.ok){msg.textContent="لا يمكنك اللعب الآن";return;}
       const index=res.index, arc=2*Math.PI/prizes.length;
       const target=-index*arc-Math.PI/2+Math.PI*6;
