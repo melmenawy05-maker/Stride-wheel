@@ -1,94 +1,207 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎉 عجلة اليوم الوطني مع Stride</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
-    body{font-family:Arial, sans-serif;text-align:center;background:#0b1a12;color:#fff;margin:0;padding:20px}
-    .card{background:#123;padding:20px;margin:20px auto;border-radius:10px;max-width:400px}
-    input,button{padding:10px;margin:5px;border-radius:6px}
-    button{cursor:pointer;background:#23a455;color:#fff;border:none}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    canvas{margin-top:20px}
+    :root{--bg:#0b1a12;--card:#0f2419;--text:#ecfdf5;--muted:#cde9d6;--brand:#1a7f3b;--brand2:#23a455;--gold:#f5d38e}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Segoe UI,Arial;color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:
+      radial-gradient(1200px 800px at 80% -10%,rgba(35,164,85,.20),transparent 60%),
+      radial-gradient(900px 700px at 0% 110%,rgba(13,95,47,.30),transparent 60%),
+      linear-gradient(180deg,#0a1a11,#0b1a12 40%,#08160f);}
+    .wrap{width:100%;max-width:1100px;display:grid;gap:18px;grid-template-columns:1fr}
+    @media(min-width:960px){.wrap{grid-template-columns:520px 1fr;align-items:start}}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:22px;backdrop-filter:blur(6px);box-shadow:0 20px 40px rgba(0,0,0,.35)}
+    .title{margin:0 0 10px;text-align:center;font-weight:900;font-size:26px;color:#eafff1}
+    label{display:block;margin:8px 0 6px;color:#d1fae5;font-weight:700}
+    input{width:100%;padding:12px 14px;border-radius:10px;background:#0c1f16;color:var(--text);border:1px solid rgba(255,255,255,.12);font-size:15px}
+    input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(35,164,85,.18);outline:0}
+    .row{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:10px}
+    button{width:100%;padding:12px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;font-size:16px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#04140b;transition:transform .06s ease,filter .2s}
+    button:hover{filter:brightness(1.05)} button:active{transform:scale(.98)} button[disabled]{opacity:.6;cursor:not-allowed}
+    .note{margin-top:10px;color:#ffd7a6;min-height:20px}
+    canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+    /* نافذة الفوز */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal.show{display:flex}
+    .modal .box{background:var(--card);border:1px solid rgba(255,255,255,.12);border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center}
+    .modal h3{margin:0 0 10px}
+    .close{background:#0c1f16;border:1px solid rgba(255,255,255,.18);color:#e8fff3}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>🎉 عجلة اليوم الوطني مع Stride</h2>
-    <label>الاسم</label><br>
-    <input id="name" placeholder="الاسم"><br>
-    <label>رقم الجوال</label><br>
-    <input id="phone" placeholder="05xxxxxxxx" maxlength="10"><br>
-    <button id="registerBtn">تسجيل البيانات ✅</button>
-    <button id="spinBtn" disabled>لف العجلة 🎯</button>
-    <p id="msg"></p>
-    <canvas id="wheel" width="300" height="300"></canvas>
+  <main class="wrap">
+    <!-- لوحة العجلة -->
+    <section class="card">
+      <h2 class="title">🎉 عجلة اليوم الوطني مع Stride</h2>
+      <canvas id="wheel" width="520" height="520" aria-label="عجلة الحظ"></canvas>
+    </section>
+
+    <!-- لوحة النموذج -->
+    <section class="card">
+      <h2 class="title">سجّل بياناتك ثم لفّ العجلة</h2>
+
+      <label for="name">الاسم</label>
+      <input id="name" type="text" placeholder="مثال: محمد علي" autocomplete="name" />
+
+      <label for="phone">رقم الجوال</label>
+      <input id="phone" type="tel" placeholder="05xxxxxxxx" inputmode="tel" maxlength="10" autocomplete="tel" />
+
+      <div class="row">
+        <button id="registerBtn">✅ تسجيل البيانات</button>
+        <button id="spinBtn" disabled>🎯 لف العجلة</button>
+      </div>
+
+      <div id="note" class="note"></div>
+    </section>
+  </main>
+
+  <!-- نافذة فوز -->
+  <div class="modal" id="winModal" role="dialog" aria-modal="true">
+    <div class="box">
+      <h3 id="winTitle">مبروك! 🎉</h3>
+      <p id="winText"></p>
+      <button class="close" id="closeWin">حسناً</button>
+    </div>
   </div>
 
   <script>
-    const GAS="https://script.google.com/macros/s/AKfycbyQoAIXbpt1GaPbv5KVhjbmt6g9ZxBw6WafpGeMm33z9dI0RSGsgeb--b2JNcmtDs2syQ/exec";
+    // رابط الويب آب (لازم يكون منشور Anyone)
+    const GAS = "https://script.google.com/macros/s/AKfycbyQoAIXbpt1GaPbv5KVhjbmt6g9ZxBw6WafpGeMm33z9dI0RSGsgeb--b2JNcmtDs2syQ/exec";
 
-    const wheel=document.getElementById('wheel'), ctx=wheel.getContext('2d');
-    const prizes=['خصم 5٪','خصم 10٪','خصم 15٪','خصم 20٪','خصم 25٪','خصم 30٪'];
-    const registerBtn=document.getElementById('registerBtn');
-    const spinBtn=document.getElementById('spinBtn');
-    const msg=document.getElementById('msg');
-    const nameInput=document.getElementById('name');
-    const phoneInput=document.getElementById('phone');
-    let currentAngle=0, spinning=false;
+    // إعدادات العجلة
+    const PRIZES = [
+      { label:'خصم 5٪',  color:'#1a7f3b' },
+      { label:'خصم 10٪', color:'#23a455' },
+      { label:'خصم 15٪', color:'#0ea5e9' },
+      { label:'خصم 20٪', color:'#2dd4bf' },
+      { label:'خصم 25٪', color:'#22c55e' },
+      { label:'خصم 30٪', color:'#86efac' }
+    ];
 
-    function draw(){
-      ctx.clearRect(0,0,300,300);
-      const arc=2*Math.PI/prizes.length;
-      for(let i=0;i<prizes.length;i++){
-        ctx.beginPath();ctx.moveTo(150,150);
-        ctx.arc(150,150,140,currentAngle+i*arc,currentAngle+(i+1)*arc);
-        ctx.fillStyle=i%2?"#23a455":"#1a7f3b";ctx.fill();
-        ctx.save();ctx.translate(150,150);ctx.rotate(currentAngle+(i+0.5)*arc);
-        ctx.fillStyle="#fff";ctx.font="bold 14px Arial";
-        ctx.fillText(prizes[i],60,0);ctx.restore();
+    // عناصر
+    const nameEl  = document.getElementById('name');
+    const phoneEl = document.getElementById('phone');
+    const regBtn  = document.getElementById('registerBtn');
+    const spinBtn = document.getElementById('spinBtn');
+    const note    = document.getElementById('note');
+    const modal   = document.getElementById('winModal');
+    const winText = document.getElementById('winText');
+    const closeWin= document.getElementById('closeWin');
+
+    // كانفاس
+    const canvas = document.getElementById('wheel');
+    const ctx    = canvas.getContext('2d');
+    const R      = canvas.width/2;
+    let angle    = -Math.PI/2, spinning=false;
+
+    // رسم العجلة (خط واضح/Bold ومحاذاة أنسب)
+    function drawWheel(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.save(); ctx.translate(R,R);
+      const n=PRIZES.length, arc=(2*Math.PI)/n;
+
+      for(let i=0;i<n;i++){
+        const start=angle + i*arc, end=start+arc;
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R-14,start,end); ctx.closePath();
+        ctx.fillStyle=PRIZES[i].color; ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=2; ctx.stroke();
+
+        const mid=start+arc/2;
+        ctx.save(); ctx.rotate(mid);
+        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#082216';
+        ctx.font='700 20px system-ui,Arial';
+        ctx.fillText(PRIZES[i].label, R*0.68, 0);
+        ctx.restore();
       }
+      // مركز وسهم
+      ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2); ctx.fillStyle='#0c1f16'; ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3; ctx.stroke();
+      ctx.restore();
+      // السهم أعلى
+      ctx.beginPath(); ctx.moveTo(R-12,14); ctx.lineTo(R+12,14); ctx.lineTo(R,48); ctx.closePath();
+      ctx.fillStyle='#f5d38e'; ctx.fill();
+      ctx.strokeStyle='#0b1a12'; ctx.lineWidth=2; ctx.stroke();
     }
-    draw();
+    drawWheel();
 
-    async function api(route,data){
-      try{
-        let r=await fetch(GAS,{method:'POST',body:JSON.stringify({route,...data})});
-        return await r.json();
-      }catch(err){
-        console.error(err);
-        return {ok:false};
-      }
-    }
+    // دوران للقطاع المستهدف
+    function spinTo(index, done){
+      if(spinning) return; spinning=true;
+      const n=PRIZES.length, arc=(2*Math.PI)/n;
+      const midTarget = -Math.PI/2 - (index*arc + arc/2); // منتصف القطاع عند رأس السهم
+      const extraTurns = 5 + Math.floor(Math.random()*2);
+      const target = midTarget - extraTurns*2*Math.PI;
+      const start  = angle, dur = 4500 + Math.random()*600, t0=performance.now();
+      const ease = t => 1 - Math.pow(1-t,3);
 
-    registerBtn.onclick=async()=>{
-      const name=nameInput.value.trim(), phone=phoneInput.value.trim();
-      if(!name||!phone){msg.textContent="أكمل البيانات";return;}
-      let res=await api('register',{name,phone});
-      if(res.ok){msg.textContent="تم التسجيل ✅";spinBtn.disabled=false;}
-      else msg.textContent="تعذر التسجيل";
-    };
-
-    spinBtn.onclick=async()=>{
-      if(spinning) return;
-      let res=await api('spin',{name:nameInput.value,phone:phoneInput.value});
-      if(!res.ok){msg.textContent="لا يمكنك اللعب الآن";return;}
-      const index=res.index, arc=2*Math.PI/prizes.length;
-      const target=-index*arc-Math.PI/2+Math.PI*6;
-      const start=currentAngle, duration=4000, t0=performance.now();
-      spinning=true;
-      (function anim(t){
-        let p=Math.min((t-t0)/duration,1);
-        currentAngle=start+(target-start)*(1-Math.pow(1-p,3));
-        draw();
-        if(p<1) requestAnimationFrame(anim); else{
-          spinning=false;
-          confetti();
-          msg.textContent="🎉 مبروك! "+prizes[index];
-        }
+      (function anim(now){
+        const t = Math.min(1,(now - t0)/dur);
+        angle = start + (target - start) * ease(t);
+        drawWheel();
+        if(t<1) requestAnimationFrame(anim); else { spinning=false; done && done(); }
       })(performance.now());
-    };
+    }
+
+    // استدعاء API (بدون ترويسات لتفادي CORS preflight)
+    async function api(route, payload){
+      try{
+        const r = await fetch(GAS, { method:'POST', body: JSON.stringify({route, ...payload}) });
+        if(!r.ok) return {ok:false};
+        return await r.json();
+      }catch(_){ return {ok:false}; }
+    }
+
+    // تسجيل
+    regBtn.addEventListener('click', async ()=>{
+      const name = nameEl.value.trim();
+      const phone= phoneEl.value.trim();
+      if(!name || !phone){ note.textContent='أدخل الاسم والرقم.'; return; }
+
+      regBtn.disabled=true;
+      const res = await api('register',{name,phone});
+      regBtn.disabled=false;
+
+      if(res && res.ok){
+        spinBtn.disabled=false;
+        note.textContent='تم التسجيل ✅ يمكنك الآن لفّ العجلة.';
+      }else{
+        spinBtn.disabled=true;
+        note.textContent='تعذّر التسجيل. تأكّد من نشر الويب آب على Anyone ومن صحة الرقم.';
+      }
+    });
+
+    // لفّ العجلة
+    spinBtn.addEventListener('click', async ()=>{
+      const name = nameEl.value.trim();
+      const phone= phoneEl.value.trim();
+      if(!name || !phone){ note.textContent='أدخل الاسم والرقم أولاً.'; return; }
+
+      spinBtn.disabled=true;
+      const res = await api('spin',{name,phone});
+      if(!res || !res.ok){
+        spinBtn.disabled=false;
+        note.textContent='غير مسموح بالمحاولة الآن.';
+        return;
+      }
+      let index = typeof res.index === 'number' ? res.index : PRIZES.findIndex(p=>p.label===res.prize);
+      if(index<0) index = Math.floor(Math.random()*PRIZES.length);
+
+      spinTo(index, ()=>{
+        // احتفال 🎉
+        for(let i=0;i<5;i++){
+          setTimeout(()=>confetti({particleCount:140, spread:70, origin:{y:0.6}}), i*300);
+        }
+        winText.textContent = `مبروك! جائزتك: ${PRIZES[index].label}`;
+        modal.classList.add('show');
+        spinBtn.disabled=false;
+      });
+    });
+
+    closeWin.addEventListener('click', ()=> modal.classList.remove('show'));
   </script>
 </body>
 </html>
